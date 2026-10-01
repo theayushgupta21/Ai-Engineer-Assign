@@ -142,4 +142,4 @@ These tests use fake API responses and temporary CSV/cache paths, so they do not
 - Review the generated draft list before sending anything live.
 - Use the staged workflow in [influencer-outreach/SETUP_AND_RUN.md](influencer-outreach/SETUP_AND_RUN.md) for a smoother Windows setup and troubleshooting flow.
 
-This pipeline is intended for controlled, review-based outreach rather than fully automated bulk contact sending.
+This pipeline is intended for controlled, review-based outreach rather than fully automated bulk contact sending..
