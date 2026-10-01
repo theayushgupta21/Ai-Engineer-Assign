@@ -1,24 +1,81 @@
 # Influencer Outreach Pipeline
 
-A CLI pipeline that discovers public YouTube channels in fashion and beauty, enriches public channel/video data, applies deterministic filters, drafts personalized outreach, and tracks approved email attempts. Instagram DMs are exported for manual sending only.
+A lightweight AI-powered outreach workflow for identifying relevant creator prospects, enriching their public data, filtering for quality leads, and generating personalized outreach drafts for manual approval.
 
-## Requirements and setup
+This project is organized as a command-line pipeline and is located under [influencer-outreach/](influencer-outreach/). The main entrypoint, configuration, prompts, data files, and tests live there.
+
+## Why this project
+
+- Finds publicYouTube creators in fashion and beauty niches
+- Enriches profiles with public metadata, recent videos, and email signals
+- Applies deterministic quality filters before outreach
+- Generates personalized email drafts using Groq-backed prompts
+- Tracks outbound attempts and keeps manual approval in the loop
+- Exports Instagram DMs to a manual queue instead of auto-sending
+
+## Core workflow
+
+1. Discovery searches YouTube by configured keywords and stores unique channel IDs.
+2. Enrichment collects public stats, recent videos, and available contact details.
+3. Filtering ranks eligible creators based on quality criteria and niche fit.
+4. Personalization writes tailored outreach drafts for human review.
+5. Sending only carries out approved drafts in dry-run or test inbox mode.
+
+## Project structure
+
+```text
+Ai Engineer Assign/
+├── README.md
+├── influencer-outreach/
+│   ├── main.py
+│   ├── config.yaml
+│   ├── requirements.txt
+│   ├── AGENT_PROMPT.md
+│   ├── PRD.md
+│   ├── RULES.md
+│   ├── SETUP_AND_RUN.md
+│   ├── STRUCTURE_AND_WORKFLOW.md
+│   ├── data/
+│   ├── prompts/
+│   ├── src/
+│   └── tests/
+└── ...
+```
+
+## Requirements
 
 - Python 3.11+
 - YouTube Data API v3 key
 - Groq API key for message generation
 
-Install dependencies with `pip install -r requirements.txt`. Copy `.env.example` to `.env` and set `GROQ_API_KEY` and `YOUTUBE_API_KEY`. Never put real keys in `.env.example` or commit `.env`.
+## Setup
 
-**Credential warning:** the current workspace `.env.example` contains value-present sensitive entries. Do not commit it or copy it into `.env` until those entries have been replaced with placeholders; rotate any credentials that were exposed.
+Install dependencies:
 
-The current Groq model is `openai/gpt-oss-20b`; `openai/gpt-oss-120bt` is the configured quality fallback. Request token limit, temperature, retry count, and inter-request delay are controlled in `config.yaml`.
+```bash
+cd influencer-outreach
+pip install -r requirements.txt
+```
 
-For the full Windows setup, staged run commands, review workflow, and troubleshooting, see [SETUP_AND_RUN.md](SETUP_AND_RUN.md).
+Create your environment file and set the required variables:
 
-## Run
+```bash
+copy .env.example .env
+```
+
+Then populate the keys in `.env` for:
+
+- `GROQ_API_KEY`
+- `YOUTUBE_API_KEY`
+
+> Important: never commit `.env` or add real credentials into `.env.example`. The workspace may contain sensitive values that should be rotated if exposed.
+
+For full Windows setup instructions and a staged run guide, see [influencer-outreach/SETUP_AND_RUN.md](influencer-outreach/SETUP_AND_RUN.md).
+
+## Run commands
 
 ```powershell
+cd influencer-outreach
 python main.py run-all
 python main.py discover
 python main.py enrich
@@ -27,41 +84,62 @@ python main.py personalize
 python main.py send
 ```
 
-Before rerunning `personalize` after a failed run, manually delete a stale `data/messages.csv` so old drafts cannot mix with the new result. The stage never deletes this file automatically.
+### Sending behavior
 
-The sender defaults to dry-run. Review `data/messages.csv` and set `approved` to `true` for drafts to send. `python main.py send --live` sends approved email drafts only to the configured `TEST_INBOX`; it does not send to influencer addresses. DMs are written to `data/dm_manual_queue.csv` and are never auto-sent.
+- The sender defaults to dry-run mode.
+- Review `data/messages.csv` and set `approved` to `true` for drafts to be sent.
+- `python main.py send --live` sends only approved drafts to the configured `TEST_INBOX`.
+- DMs are written to `data/dm_manual_queue.csv` and are never auto-sent.
+- Before rerunning personalization after a failed run, remove stale `data/messages.csv` content so old drafts do not mix with the new result.
 
-## Pipeline and outputs
+## Data flow and outputs
 
-1. Discovery searches configured keywords through the official YouTube Data API v3 and writes unique channel IDs to `data/raw_channels.csv`.
-2. Enrichment collects channel statistics, recent public videos, public-description emails, and public links into `data/influencers.csv`.
-3. Filtering preserves every enriched row with a `PASS`, `PASS_NO_EMAIL`, or `FAIL` status and reasons. Eligible rows are ranked into `data/shortlist.csv`.
-4. Personalization uses Groq and the prompt files in `prompts/`, validates word counts, and stores successful drafts in `data/messages.csv` for manual approval. Failed rows are skipped; fatal account/configuration errors abort the stage.
-5. Sending deduplicates by lowercase email and tracks attempts in `data/outreach_log.csv`; generated DMs go to the manual queue.
+- `data/raw_channels.csv` stores discovered channels
+- `data/influencers.csv` stores enriched creator profiles
+- `data/shortlist.csv` stores ranked, filtered candidates
+- `data/messages.csv` stores personalized drafts awaiting approval
+- `data/outreach_log.csv` tracks send attempts and deduplication
+- `data/cache/` stores API responses
+- `logs/pipeline.log` stores execution logs
 
-All paths, thresholds, keywords, model names, and brand details are configured in `config.yaml`. API responses are cached under `data/cache/`; logs are written to `logs/pipeline.log`.
+Everything from keywords and thresholds to model names and brand details is configured in `config.yaml`.
 
 ## Filtering defaults
 
-| Criterion | Default ||
+| Criterion | Default |
 | --- | --- |
 | Followers | 5,000–100,000 |
-| Engagement | At least 1% (mean likes plus comments per view) |
+| Engagement | At least 1% (mean likes + comments per view) |
 | Niche | At least two configured keyword matches |
-| Activity | Upload within 90 days |
+| Activity | Uploaded within 90 days |
 | Email | Missing email yields `PASS_NO_EMAIL`, not a fabricated address |
 
-## Limitations
+## Safety and limitations
 
-- Discovery and enrichment require a valid YouTube API key and are subject to quota limits. Search results may not yield the target record count.
-- YouTube does not provide audience demographics through this workflow; unavailable fields remain `Not Found`.
-- Email extraction checks public channel descriptions only. No email or metric is guessed.
-- Language and country checks apply only when channel metadata is available.
-- LLM output can be inaccurate despite field-only prompts and word-count validation; drafts require human review and approval.
-- Groq transient failures are retried with backoff. Individual exhausted/invalid drafts are skipped and logged; if every row fails, the stage exits non-zero without writing a new messages file.
-- Live SMTP mode targets only the configured test inbox. Production delivery to creators is intentionally not implemented.
-- No Instagram login scraping, automated DMs, demo dataset, or fabricated influencer records are included.
+- Discovery and enrichment depend on an active YouTube API key and quota availability.
+- Audience demographics are not provided through this workflow and may remain `Not Found`.
+- Email extraction is limited to public channel descriptions and never fabricates contact data.
+- Language and country checks are only applied when metadata is available.
+- LLM-generated drafts can still be inaccurate, so human review is required.
+- Groq transient failures are retried with backoff, but exhausted or invalid drafts are skipped and logged.
+- Live email mode is intentionally restricted to the configured test inbox.
+- Instagram DM automation is not included, and no fabricated influencer records are created.
 
 ## Validation
 
-Run tests with `python -m pytest -q`. Unit tests use fake API responses and temporary CSV/cache paths; no live API calls or email sending are required.
+Run the test suite with:
+
+```bash
+cd influencer-outreach
+python -m pytest -q
+```
+
+These tests use fake API responses and temporary CSV/cache paths, so they do not require live API calls or outbound email sending.
+
+## Recommendations
+
+- Keep `.env` separate from the repository and rotate credentials if they have been exposed.
+- Review the generated draft list before sending anything live.
+- Use the staged workflow in [influencer-outreach/SETUP_AND_RUN.md](influencer-outreach/SETUP_AND_RUN.md) for a smoother Windows setup and troubleshooting flow.
+
+This pipeline is intended for controlled, review-based outreach rather than fully automated bulk contact sending.
