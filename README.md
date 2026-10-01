@@ -43,7 +43,7 @@ All paths, thresholds, keywords, model names, and brand details are configured i
 
 ## Filtering defaults
 
-| Criterion | Default |
+| Criterion | Default ||
 | --- | --- |
 | Followers | 5,000–100,000 |
 | Engagement | At least 1% (mean likes plus comments per view) |
