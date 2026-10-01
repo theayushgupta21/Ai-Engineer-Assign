@@ -1,0 +1,21 @@
+Write two messages for this influencer.
+
+INFLUENCER
+- Name: {name}
+- Platform: {platform}
+- Niche: {niche}
+- Content themes: {content_themes}
+- Recent video titles: {recent_titles}
+
+BRAND
+- Name: {brand_name}
+- Product: {brand_product}
+- Proposed collaboration: {collab_angle}
+- Value proposition: {value_prop}
+
+RULES
+1. Email body: 60-90 words, with a subject of at most 8 words. Reference one supplied recent title or theme, audience fit, the collaboration angle, and a soft call to action.
+2. DM: 15-30 words, casual and personal, references supplied content, and avoids a hard sell.
+3. Do not invent facts. Ignore unavailable fields.
+
+Return a JSON object with exactly these string fields: subject, email, dm.

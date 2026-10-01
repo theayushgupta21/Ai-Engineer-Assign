@@ -1,0 +1,88 @@
+niche: "Fashion & Beauty"
+platform: "YouTube"
+
+discovery:
+  keywords:
+    - "Indian skincare routine"
+    - "budget skincare India"
+    - "Indian makeup tutorial"
+    - "affordable makeup India"
+    - "Indian fashion haul"
+    - "budget outfit ideas India"
+    - "GRWM India"
+    - "Indian beauty review"
+    - "hair care routine India"
+    - "thrift fashion India"
+    - "small beauty creator India"
+    - "skincare for Indian skin"
+  max_results_per_keyword: 50
+  target_raw_channels: 500
+  region_code: "IN"
+  relevance_language: "en"
+
+enrichment:
+  recent_videos: 10
+
+filtering:
+  min_followers: 5000
+  max_followers: 100000
+  min_engagement_rate: 0.01  # 1%
+  min_keyword_hits: 2
+  max_days_since_last_upload: 90
+  engagement_score_cap: 0.05
+  brand_fit_weights:
+    followers: 0.20
+    engagement: 0.35
+    niche: 0.25
+    activity: 0.20
+  niche_keywords:
+    - skincare
+    - makeup
+    - beauty
+    - fashion
+    - outfit
+    - haul
+    - hair
+    - style
+    - cosmetics
+    - grwm
+    - lookbook
+    - thrift
+    
+personalization:
+  model: "openai/gpt-oss-20b" # Better quality fallback: openai/gpt-oss-120bt 
+  email_words: [60, 90]
+  dm_words: [15, 30]
+  max_retries: 3
+  max_tokens: 2000
+  temperature: 0.7
+  delay_between_requests_seconds: 2
+
+collaboration:
+  high_engagement_rate: 0.04
+  mid_engagement_rate: 0.02
+  high_reach_followers: 50000
+  high_reach_views: 10000
+  high_engagement_angle: "user-generated content"
+  mid_engagement_angle: "affiliate partnership"
+  high_reach_angle: "paid placement"
+  default_angle: "product seeding"
+
+brand:
+  name: "YOUR_BRAND"
+  product: "YOUR_PRODUCT"
+  value_prop: "Free products plus a paid content partnership"
+
+sending:
+  dry_run: true
+  from_name: "YOUR NAME"
+
+paths:
+  cache_dir: "data/cache"
+  raw_channels: "data/raw_channels.csv"
+  influencers: "data/influencers.csv"
+  shortlist: "data/shortlist.csv"
+  messages: "data/messages.csv"
+  outreach_log: "data/outreach_log.csv"
+  dm_queue: "data/dm_manual_queue.csv"
+  log_file: "logs/pipeline.log"

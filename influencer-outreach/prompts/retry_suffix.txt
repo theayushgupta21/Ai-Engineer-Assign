@@ -1,0 +1,1 @@
+Your previous output had {email_words} words in the email and {dm_words} words in the DM. The email must be 60-90 words and the DM 15-30 words. Rewrite both messages and return JSON only.
